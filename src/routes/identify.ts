@@ -61,6 +61,9 @@ router.post("/", async (req, res) => {
 
   // Step 4: Determine primary (oldest)
   let primary = allRelated.find((c) => c.linkPrecedence === "primary");
+  if (!primary) {
+  return res.status(500).json({ error: "Primary contact resolution failed" });
+}
 
   if (!primary) {
     primary = allRelated[0];

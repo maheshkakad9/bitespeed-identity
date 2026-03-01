@@ -1,7 +1,7 @@
 # Bitespeed Identity Reconciliation
 
 ## Hosted Endpoint
-POST https://your-app-name.onrender.com/identify
+POST 
 
 ## Sample Request
 {
