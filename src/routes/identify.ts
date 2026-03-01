@@ -40,7 +40,56 @@ router.post("/", async (req, res) => {
       },
     });
   }
-  
+
+  // Step 3: Find all related contacts
+  const contactIds = new Set<number>();
+
+  existingContacts.forEach((c) => {
+    contactIds.add(c.id);
+    if (c.linkedId) contactIds.add(c.linkedId);
+  });
+
+  const allRelated = await prisma.contact.findMany({
+    where: {
+      OR: [
+        { id: { in: Array.from(contactIds) } },
+        { linkedId: { in: Array.from(contactIds) } },
+      ],
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  // Step 4: Determine primary (oldest)
+  let primary = allRelated.find((c) => c.linkPrecedence === "primary");
+
+  if (!primary) {
+    primary = allRelated[0];
+  }
+
+  // Step 5: If multiple primaries -> merge them
+  const primaries = allRelated.filter(
+    (c) => c.linkPrecedence === "primary"
+  );
+
+  if (primaries.length > 1) {
+    const oldestPrimary = primaries.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    )[0];
+
+    for (const p of primaries) {
+      if (p.id !== oldestPrimary.id) {
+        await prisma.contact.update({
+          where: { id: p.id },
+          data: {
+            linkedId: oldestPrimary.id,
+            linkPrecedence: "secondary",
+          },
+        });
+      }
+    }
+
+    primary = oldestPrimary;
+  }
 });
 
 export default router;
