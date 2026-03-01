@@ -90,6 +90,23 @@ router.post("/", async (req, res) => {
 
     primary = oldestPrimary;
   }
+
+  // Step 6: Check if new combination exists
+  const combinationExists = allRelated.some(
+    (c) => c.email === email && c.phoneNumber === phoneNumber
+  );
+
+  if (!combinationExists) {
+    await prisma.contact.create({
+      data: {
+        email,
+        phoneNumber,
+        linkedId: primary.id,
+        linkPrecedence: "secondary",
+      },
+    });
+  }
+  
 });
 
 export default router;
