@@ -106,7 +106,37 @@ router.post("/", async (req, res) => {
       },
     });
   }
-  
+  // Step 7: Fetch final updated list
+  const finalContacts = await prisma.contact.findMany({
+    where: {
+      OR: [
+        { id: primary.id },
+        { linkedId: primary.id },
+      ],
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const emails = Array.from(
+    new Set(finalContacts.map((c) => c.email).filter(Boolean))
+  ) as string[];
+
+  const phoneNumbers = Array.from(
+    new Set(finalContacts.map((c) => c.phoneNumber).filter(Boolean))
+  ) as string[];
+
+  const secondaryContactIds = finalContacts
+    .filter((c) => c.linkPrecedence === "secondary")
+    .map((c) => c.id);
+
+  return res.status(200).json({
+    contact: {
+      primaryContatctId: primary.id,
+      emails,
+      phoneNumbers,
+      secondaryContactIds,
+    },
+  });
 });
 
 export default router;
