@@ -1,7 +1,7 @@
 # Bitespeed Identity Reconciliation
 
 ## Hosted Endpoint
-POST 
+POST https://bitespeed-identity-6ddk.onrender.com/identify
 
 ## Sample Request
 {
